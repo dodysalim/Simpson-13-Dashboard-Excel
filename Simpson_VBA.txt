@@ -1,0 +1,414 @@
+Option Explicit
+
+' ==============================================================================
+' PALETA DE COLORES EXACTA (GitHub Dark Style)
+' Los colores hexadecimales web (#RRGGBB) se convierten a formato Long en VBA.
+' ==============================================================================
+Public Const C_BG       As Long = 1511693    ' Fondo principal oscuro
+Public Const C_SURFACE  As Long = 2235158    ' Color de las tarjetas/paneles
+Public Const C_SURFACE2 As Long = 2629916    ' Color alterno para las filas de la tabla
+Public Const C_GAP      As Long = 2956833    ' Color de las separaciones (1px)
+Public Const C_BLUE     As Long = 16290628   ' Acento Azul
+Public Const C_ORANGE   As Long = 626935     ' Acento Naranja
+Public Const C_GREEN    As Long = 5290303    ' Acento Verde (Resultado)
+Public Const C_GRAY     As Long = 10392715   ' Textos secundarios o apagados
+Public Const C_WHITE    As Long = 15986150   ' Textos principales
+Public Const C_DARK_TXT As Long = 1511693    ' Texto oscuro para la cabecera naranja
+
+' ==============================================================================
+' MACRO PRINCIPAL: Genera el Dashboard Interactivo de Simpson 1/3
+' ==============================================================================
+Sub Simpson_Dashboard_Pro()
+    Dim ws As Worksheet
+    Dim a As Double, b As Double, h As Double, x_i As Double, f_i As Double
+    Dim n As Integer, i As Integer
+    Dim strFormula As String
+    Dim sumPar As Double, sumImpar As Double, resultado As Double
+    Dim fRow As Integer
+
+    ' --------------------------------------------------------------------------
+    ' 1. INTERFAZ DE ENTRADA SEGURA
+    ' Se solicitan los parámetros al usuario. 'On Error Resume Next' evita que
+    ' la macro colapse si el usuario presiona "Cancelar".
+    ' --------------------------------------------------------------------------
+    On Error Resume Next
+    a = CDbl(InputBox("Límite inferior (a):", "Configuración Simpson 1/3", "0"))
+    b = CDbl(InputBox("Límite superior (b):", "Configuración Simpson 1/3", "10"))
+    n = CInt(InputBox("Número de intervalos (n) - DEBE SER PAR:", "Configuración Simpson 1/3", "10"))
+    strFormula = Trim(InputBox("Función f(x):" & vbCrLf & "Ej: x^2, sin(x), exp(x)", "Configuración Simpson 1/3", "x^3"))
+    On Error GoTo 0
+
+    ' Validación estricta: Simpson 1/3 exige que el número de intervalos sea PAR
+    If n Mod 2 <> 0 Or n < 2 Then
+        MsgBox "El número de intervalos (n) debe ser un número par mayor o igual a 2.", vbCritical, "Error"
+        Exit Sub
+    End If
+    If strFormula = "" Then Exit Sub
+
+    ' --------------------------------------------------------------------------
+    ' 2. PREPARACIÓN DEL LIENZO (Efecto App)
+    ' --------------------------------------------------------------------------
+    Application.ScreenUpdating = False ' Congela la pantalla para que no parpadee al dibujar
+    Set ws = ActiveSheet
+    
+    ' Mostrar todo temporalmente por si se ejecuta por segunda vez sobre un dashboard anterior
+    ws.Cells.EntireColumn.Hidden = False
+    ws.Cells.EntireRow.Hidden = False
+    
+    ' Limpieza total y aplicación del fondo oscuro base
+    ws.Cells.Clear
+    ws.Cells.Interior.Color = C_BG
+    ws.Cells.Font.Name = "Segoe UI"
+    ws.Cells.Font.Size = 9
+    ActiveWindow.DisplayGridlines = False
+    ActiveWindow.DisplayHeadings = False ' <-- OCULTA LETRAS Y NÚMEROS DE EXCEL (Inmersión total)
+    
+    ' Limpiar gráficos y cuadros de texto antiguos
+    Dim chObj As ChartObject
+    Dim shpObj As Shape
+    For Each chObj In ws.ChartObjects: chObj.Delete: Next chObj
+    For Each shpObj In ws.Shapes: shpObj.Delete: Next shpObj
+
+    ' --------------------------------------------------------------------------
+    ' 3. CONFIGURACIÓN DE COLUMNAS (Layout exacto de 1px de separación estilo CSS)
+    ' Se utilizan anchos de columna mínimos (0.1) para simular los "Gaps" del diseño web
+    ' --------------------------------------------------------------------------
+    ws.Columns("A:A").ColumnWidth = 2
+    ws.Columns("B:C").ColumnWidth = 7
+    ws.Columns("D:D").ColumnWidth = 0.1     ' Gap divisor
+    ws.Columns("E:F").ColumnWidth = 7
+    ws.Columns("G:G").ColumnWidth = 0.1     ' Gap divisor
+    ws.Columns("H:I").ColumnWidth = 7
+    ws.Columns("J:J").ColumnWidth = 0.1     ' Gap divisor
+    ws.Columns("K:L").ColumnWidth = 7
+    ws.Columns("M:M").ColumnWidth = 0.1     ' Gap divisor
+    ws.Columns("N:N").ColumnWidth = 5       ' Columna tabla: i
+    ws.Columns("O:O").ColumnWidth = 10      ' Columna tabla: xi
+    ws.Columns("P:P").ColumnWidth = 11      ' Columna tabla: f(xi)
+    ws.Columns("Q:Q").ColumnWidth = 9       ' Columna tabla: tipo
+    ws.Columns("R:R").ColumnWidth = 2
+    ws.Columns("AA:AB").Hidden = True       ' Ocultamos las columnas donde irán los datos del gráfico
+
+    ' Pintamos la zona de las tarjetas con el color de "Gap" (para que las líneas de 0.1 destaquen)
+    ws.Range("B2:Q100").Interior.Color = C_GAP
+
+    ' --------------------------------------------------------------------------
+    ' 4. DIBUJADO DEL ENCABEZADO
+    ' --------------------------------------------------------------------------
+    ws.Range("B2:Q2").Interior.Color = C_BLUE  ' Línea decorativa superior
+    ws.Rows(2).RowHeight = 3
+    
+    ws.Range("B3:Q3").Interior.Color = C_SURFACE
+    ws.Rows(3).RowHeight = 35
+    
+    ' Título a la izquierda
+    ws.Cells(3, 2).Value = "  INTEGRACIÓN NUMÉRICA  ·  Regla de Simpson 1/3"
+    ws.Cells(3, 2).Font.Color = C_WHITE
+    ws.Cells(3, 2).Font.Bold = True
+    ws.Cells(3, 2).Font.Size = 11
+    ws.Cells(3, 2).VerticalAlignment = xlCenter
+    
+    ' Función matemática alineada a la derecha
+    ws.Cells(3, 17).Value = "f(x) = " & strFormula & "  "
+    ws.Cells(3, 17).Font.Color = C_BLUE
+    ws.Cells(3, 17).Font.Name = "Courier New"
+    ws.Cells(3, 17).HorizontalAlignment = xlRight
+    ws.Cells(3, 17).VerticalAlignment = xlCenter
+
+    ws.Rows(4).RowHeight = 1.5 ' Espacio separador
+
+    ' --------------------------------------------------------------------------
+    ' 5. MOTOR MATEMÁTICO: ALGORITMO DE SIMPSON 1/3
+    ' Fórmula: I = (h/3) * [f(x0) + 4*SUM(impares) + 2*SUM(pares) + f(xn)]
+    ' --------------------------------------------------------------------------
+    h = (b - a) / n                 ' Tamaño del paso (ancho de cada intervalo)
+    sumPar = 0: sumImpar = 0
+    
+    Dim fa As Double, fb As Double
+    fa = EvalFX(strFormula, a)      ' Evaluación del límite inferior
+    fb = EvalFX(strFormula, b)      ' Evaluación del límite superior
+    
+    ' Bucle de iteración para los puntos internos
+    For i = 1 To n - 1
+        x_i = a + i * h             ' Calcular el punto X actual
+        f_i = EvalFX(strFormula, x_i) ' Calcular el punto Y (evaluar función)
+        
+        ' Clasificar como par o impar para la sumatoria correspondiente
+        If i Mod 2 = 0 Then sumPar = sumPar + f_i Else sumImpar = sumImpar + f_i
+    Next i
+    
+    ' Resultado final de la integral
+    resultado = (h / 3) * (fa + 4 * sumImpar + 2 * sumPar + fb)
+
+    ' --------------------------------------------------------------------------
+    ' 6. DIBUJADO DE TARJETAS INDICADORAS (KPIs)
+    ' --------------------------------------------------------------------------
+    ' Líneas de colores superiores de las tarjetas
+    ws.Rows(5).RowHeight = 2.5
+    ws.Range("B5:C5").Interior.Color = C_BLUE
+    ws.Range("E5:F5").Interior.Color = C_BLUE
+    ws.Range("H5:I5").Interior.Color = C_ORANGE
+    ws.Range("K5:L5").Interior.Color = C_GRAY
+    ws.Range("N5:Q5").Interior.Color = C_GREEN
+    
+    ' Se "perforan" las líneas superiores pintando los gaps para separar las tarjetas
+    ws.Cells(5, 4).Interior.Color = C_GAP
+    ws.Cells(5, 7).Interior.Color = C_GAP
+    ws.Cells(5, 10).Interior.Color = C_GAP
+    ws.Cells(5, 13).Interior.Color = C_GAP
+
+    ' Cuerpos de las tarjetas (Usan la función auxiliar CrearKPI)
+    ws.Rows(6).RowHeight = 62
+    Call CrearKPI(ws, "B6:C6", "LIMITE A", Format(a, "0"), C_BLUE)
+    Call CrearKPI(ws, "E6:F6", "LIMITE B", Format(b, "0"), C_BLUE)
+    Call CrearKPI(ws, "H6:I6", "INTERVALOS N", Format(n, "0"), C_ORANGE)
+    Call CrearKPI(ws, "K6:L6", "PASO H", Format(h, "0.00000"), C_GRAY)
+    
+    ' Tarjeta especial de Resultado (ocupa más espacio y es verde)
+    With ws.Range("N6:Q6")
+        .Merge
+        .Interior.Color = C_SURFACE
+        .VerticalAlignment = xlTop
+    End With
+    
+    Call InsertarTexto(ws, ws.Range("N6"), "RESULTADO INTEGRAL", 4, 4, C_GRAY, 8, True)
+    Call InsertarTexto(ws, ws.Range("N6"), Format(resultado, "0.000000"), 4, 18, C_GREEN, 20, True)
+    Call InsertarTexto(ws, ws.Range("N6"), "desde x=" & a & " hasta x=" & b, 4, 45, C_GRAY, 8, False)
+
+    ws.Rows(7).RowHeight = 1.5
+
+    ' --------------------------------------------------------------------------
+    ' 7. CONSTRUCCIÓN DE LA TABLA DE RESULTADOS
+    ' --------------------------------------------------------------------------
+    ' Cabeceras de tabla
+    ws.Range("N8:Q8").Interior.Color = C_ORANGE
+    ws.Range("N8:Q8").Font.Color = C_DARK_TXT
+    ws.Range("N8:Q8").Font.Bold = True
+    ws.Range("N8:Q8").HorizontalAlignment = xlCenter
+    ws.Cells(8, 14).Value = "i"
+    ws.Cells(8, 15).Value = "xi"
+    ws.Cells(8, 16).Value = "f(xi)"
+    ws.Cells(8, 17).Value = "tipo"
+    ws.Rows(8).RowHeight = 22
+
+    fRow = 9
+    For i = 1 To n - 1
+        x_i = a + i * h
+        f_i = EvalFX(strFormula, x_i)
+        
+        ' Alternancia de colores en las filas (efecto cebra)
+        ws.Range(ws.Cells(fRow, 14), ws.Cells(fRow, 17)).Interior.Color = IIf(i Mod 2 <> 0, C_SURFACE, C_SURFACE2)
+        
+        ' Inserción de datos utilizando .NumberFormat para evitar que Excel los trate como texto
+        ws.Cells(fRow, 14).Value = i
+        ws.Cells(fRow, 14).Font.Color = C_GRAY
+        ws.Cells(fRow, 15).Value = x_i
+        ws.Cells(fRow, 15).NumberFormat = "0.00"
+        ws.Cells(fRow, 15).Font.Color = C_WHITE
+        ws.Cells(fRow, 16).Value = f_i
+        ws.Cells(fRow, 16).NumberFormat = "#,##0.000"
+        ws.Cells(fRow, 16).Font.Color = C_WHITE
+        ws.Cells(fRow, 17).Font.Bold = True
+        
+        ' Identificador visual Par/Impar
+        If i Mod 2 = 0 Then
+            ws.Cells(fRow, 17).Value = "par"
+            ws.Cells(fRow, 17).Font.Color = C_ORANGE
+        Else
+            ws.Cells(fRow, 17).Value = "impar"
+            ws.Cells(fRow, 17).Font.Color = C_BLUE
+        End If
+        
+        ws.Range(ws.Cells(fRow, 14), ws.Cells(fRow, 17)).HorizontalAlignment = xlCenter
+        ws.Range(ws.Cells(fRow, 14), ws.Cells(fRow, 17)).VerticalAlignment = xlCenter
+        ws.Rows(fRow).RowHeight = 18
+        
+        fRow = fRow + 1
+    Next i
+
+    ' Fondo base debajo de la tabla para limpieza visual
+    ws.Range(ws.Cells(fRow, 2), ws.Cells(100, 17)).Interior.Color = C_BG
+
+    ' --------------------------------------------------------------------------
+    ' 8. LLAMADA PARA GENERAR EL GRÁFICO COMBINADO
+    ' --------------------------------------------------------------------------
+    Call GenerarGrafico(ws, strFormula, a, b, fRow)
+    ws.Range(ws.Cells(8, 2), ws.Cells(fRow - 1, 12)).Interior.Color = C_SURFACE
+
+    ' --------------------------------------------------------------------------
+    ' 9. FOOTER INFORMATIVO
+    ' --------------------------------------------------------------------------
+    With ws.Range(ws.Cells(fRow, 2), ws.Cells(fRow, 17))
+        .Merge
+        .Interior.Color = C_SURFACE
+        .Borders(xlEdgeLeft).Color = C_GREEN
+        .Borders(xlEdgeLeft).Weight = xlThick
+        .Value = "  I = (h/3) * [ f(a) + 4*Sum_impar + 2*Sum_par + f(b) ]    |    h = (b-a)/n = " & Format(h, "0.00000")
+        .Font.Name = "Courier New"
+        .Font.Color = C_GRAY
+        .Font.Size = 8
+        .VerticalAlignment = xlCenter
+    End With
+    ws.Rows(fRow).RowHeight = 25
+    ws.Rows(fRow + 1).RowHeight = 15
+    
+    ' --------------------------------------------------------------------------
+    ' 10. EFECTO DASHBOARD: Ocultar celdas sobrantes a la derecha y abajo
+    ' Esto crea la ilusión de estar usando un software dedicado y no un Excel
+    ' --------------------------------------------------------------------------
+    ws.Range(ws.Columns(19), ws.Columns(ws.Columns.Count)).Hidden = True
+    ws.Range(ws.Rows(fRow + 2), ws.Rows(ws.Rows.Count)).Hidden = True
+    ws.Range("A1").Select
+
+    Application.ScreenUpdating = True
+End Sub
+
+' ==============================================================================
+' FUNCIONES AUXILIARES DE APOYO
+' ==============================================================================
+
+' ------------------------------------------------------------------------------
+' EvalFX: Motor robusto para evaluar funciones algebraicas como strings
+' ------------------------------------------------------------------------------
+Function EvalFX(ecuacion As String, x As Double) As Double
+    Dim strVal As String, strEq As String, res As Variant
+    
+    ' 1. Asegurar el punto decimal independientemente de la región de Windows (evita error de coma)
+    strVal = Trim(Replace(CStr(x), ",", "."))
+    
+    ' 2. Reemplazar la letra 'x' por el valor numérico envuelto en paréntesis por seguridad de signos
+    strEq = Replace(LCase(ecuacion), "x", "(" & strVal & ")")
+    
+    ' 3. Evaluar usando el motor nativo de la hoja de cálculo
+    res = Application.Evaluate(strEq)
+    
+    ' 4. Si falla (ej. en ciertas potencias), intentar forzando el símbolo '='
+    If IsError(res) Then
+        res = Application.Evaluate("=" & strEq)
+    End If
+    
+    ' 5. Manejo de error final y detención suave para evitar ceros fantasmas
+    If IsError(res) Then
+        MsgBox "¡Ups! Excel no pudo calcular esta parte matemática: " & strEq & vbCrLf & vbCrLf & _
+               "Asegúrate de:" & vbCrLf & _
+               "1. Usar '*' para multiplicar (ej. 2*x en vez de 2x)" & vbCrLf & _
+               "2. Usar el símbolo '^' para potencias (ej. x^3 en vez de x³)" & vbCrLf & _
+               "3. Escribir bien funciones como sin(x) o exp(x)", vbCritical, "Error de Sintaxis"
+        End ' Detiene la ejecución completa de la macro
+    Else
+        EvalFX = CDbl(res)
+    End If
+End Function
+
+' ------------------------------------------------------------------------------
+' CrearKPI: Unifica el color de fondo y utiliza cuadros flotantes para los textos
+' ------------------------------------------------------------------------------
+Private Sub CrearKPI(ws As Worksheet, rango As String, titulo As String, valor As String, colorAcento As Long)
+    Dim rng As Range: Set rng = ws.Range(rango)
+    rng.Merge: rng.Interior.Color = C_SURFACE
+    ' Se llama a InsertarTexto para tener control milimétrico del padding (márgenes)
+    Call InsertarTexto(ws, rng, titulo, 6, 6, C_GRAY, 7, True)
+    Call InsertarTexto(ws, rng, valor, 6, 22, colorAcento, 16, True)
+End Sub
+
+' ------------------------------------------------------------------------------
+' InsertarTexto: Genera Shapes (Cajas de texto invisibles) para simular HTML/CSS
+' ya que el texto en celdas de Excel es rígido y difícil de posicionar libremente.
+' ------------------------------------------------------------------------------
+Private Sub InsertarTexto(ws As Worksheet, celda As Range, texto As String, leftOffset As Double, topOffset As Double, colorFont As Long, sizeFont As Integer, isBold As Boolean)
+    Dim txt As Shape
+    Set txt = ws.Shapes.AddTextbox(msoTextOrientationHorizontal, celda.Left + leftOffset, celda.Top + topOffset, 150, 30)
+    txt.Line.Visible = msoFalse: txt.Fill.Visible = msoFalse
+    With txt.TextFrame.Characters
+        .Text = texto: .Font.Name = "Segoe UI"
+        .Font.Size = sizeFont: .Font.Color = colorFont: .Font.Bold = isBold
+    End With
+    txt.TextFrame.MarginLeft = 0: txt.TextFrame.MarginTop = 0
+End Sub
+
+' ------------------------------------------------------------------------------
+' GenerarGrafico: Construye un "Combo Chart" para replicar un diseño web moderno.
+' Superpone una serie Área (Sombra transparente) con una serie Línea (Borde sólido).
+' ------------------------------------------------------------------------------
+Private Sub GenerarGrafico(ws As Worksheet, ecuacion As String, a As Double, b As Double, fRow As Integer)
+    Dim i As Integer, puntos As Integer: puntos = 100 ' 100 puntos para garantizar una curva suave
+    Dim paso As Double, ch As ChartObject, rngChart As Range
+    Dim sArea As Series, sLine As Series
+    
+    paso = (b - a) / puntos
+    
+    ' Guardamos los puntos del gráfico en columnas ocultas
+    ws.Cells(1, 27).Value = "X": ws.Cells(1, 28).Value = "Y"
+    For i = 0 To puntos
+        ws.Cells(i + 2, 27).Value = a + (i * paso)
+        ws.Cells(i + 2, 28).Value = EvalFX(ecuacion, a + (i * paso))
+    Next i
+    
+    ' Posicionar el gráfico al lado de la tabla
+    Set rngChart = ws.Range(ws.Cells(8, 2), ws.Cells(fRow - 1, 12))
+    Set ch = ws.ChartObjects.Add(rngChart.Left + 5, rngChart.Top + 25, rngChart.Width - 10, rngChart.Height - 30)
+    
+    With ch.Chart
+        .PlotVisibleOnly = False ' OBLIGATORIO: Permite que Excel grafique los datos aunque las columnas AA y AB estén ocultas
+        
+        ' Limpiar datos por defecto que Excel asigna a nuevos gráficos
+        Do While .SeriesCollection.Count > 0
+            .SeriesCollection(1).Delete
+        Loop
+        
+        ' --- SERIE 1: ÁREA (Crea la sombra inferior transparente sin bordes a los lados) ---
+        Set sArea = .SeriesCollection.NewSeries
+        sArea.ChartType = xlArea
+        sArea.XValues = ws.Range("AA2:AA" & (puntos + 2))
+        sArea.Values = ws.Range("AB2:AB" & (puntos + 2))
+        
+        With sArea.Format
+            .Fill.Visible = msoTrue
+            .Fill.ForeColor.RGB = C_ORANGE
+            .Fill.Transparency = 0.85
+            .Line.Visible = msoFalse ' Esconde la línea vertical fea del gráfico de área
+        End With
+        
+        ' --- SERIE 2: LÍNEA (Traza la función matemática nítida y gruesa por encima) ---
+        Set sLine = .SeriesCollection.NewSeries
+        sLine.ChartType = xlLine
+        sLine.XValues = ws.Range("AA2:AA" & (puntos + 2))
+        sLine.Values = ws.Range("AB2:AB" & (puntos + 2))
+        
+        With sLine.Format
+            .Line.Visible = msoTrue
+            .Line.ForeColor.RGB = C_ORANGE
+            .Line.Weight = 2.5
+            .Fill.Visible = msoFalse
+        End With
+        
+        ' Format general del gráfico (Modo Oscuro)
+        .HasLegend = False
+        .ChartArea.Interior.Color = C_SURFACE
+        .ChartArea.Format.Line.Visible = msoFalse
+        .PlotArea.Interior.Color = C_BG
+        
+        ' Configuración del Eje Y
+        With .Axes(xlValue)
+            .MajorGridlines.Format.Line.ForeColor.RGB = C_GAP
+            .TickLabels.Font.Color = C_GRAY
+            .TickLabels.Font.Name = "Segoe UI"
+            .Format.Line.Visible = msoFalse
+        End With
+        
+        ' Configuración del Eje X
+        With .Axes(xlCategory)
+            .TickLabels.Font.Color = C_GRAY
+            .TickLabels.Font.Name = "Segoe UI"
+            .Format.Line.ForeColor.RGB = C_GAP
+            .AxisBetweenCategories = False ' Fuerza a que el gráfico toque los bordes laterales
+            
+            ' Obligar a Excel a mostrar exactamente 6 valores limpios en el eje
+            .TickLabelSpacing = puntos / 5
+            .TickMarkSpacing = puntos / 5
+        End With
+    End With
+    
+    ' Título flotante insertado vía Shape
+    Call InsertarTexto(ws, rngChart, "f(x) = " & ecuacion & "  —  área bajo la curva", 5, 5, C_GRAY, 9, False)
+End Sub
