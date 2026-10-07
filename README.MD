@@ -1,3 +1,17 @@
+# Simpson 1/3 · Integración numérica
+
+Proyecto de Excel VBA para aproximar integrales definidas y visualizar el método.
+
+**Para revisar:** `Simpson_Pro.xlsm, Simpson_VBA.txt`.
+
+**Contexto:** Requiere Excel con macros. El archivo XLSM original no se ha modificado ni ejecutado. La mejora VBA se entrega como código fuente para importar y validar en Excel.
+
+Consulta [el caso de proyecto](docs/PORTFOLIO_CASE.md) para el alcance y los criterios de revisión.
+
+---
+
+## Documentación detallada existente
+
 # 📊 Dashboard de Integración Numérica Simpson 1/3 (Excel VBA)
 
 Una herramienta avanzada y de alto rendimiento desarrollada en Excel para calcular integrales definidas utilizando la **Regla de Simpson 1/3**, con una interfaz de usuario moderna inspirada en el estilo "GitHub Dark".
