@@ -48,6 +48,7 @@ Sub Simpson_Dashboard_Pro()
     ' --------------------------------------------------------------------------
     ' 2. PREPARACIÓN DEL LIENZO (Efecto App)
     ' --------------------------------------------------------------------------
+    On Error GoTo ErrorHandler
     Application.ScreenUpdating = False ' Congela la pantalla para que no parpadee al dibujar
     On Error Resume Next
     Set ws = ActiveWorkbook.Worksheets("Simpson Dashboard")
@@ -268,6 +269,10 @@ Sub Simpson_Dashboard_Pro()
     ws.Range("A1").Select
 
     Application.ScreenUpdating = True
+    Exit Sub
+ErrorHandler:
+    Application.ScreenUpdating = True
+    MsgBox "No se pudo calcular la integral: " & Err.Description, vbExclamation, "Simpson 1/3"
 End Sub
 
 ' ==============================================================================
@@ -337,7 +342,7 @@ End Sub
 ' GenerarGrafico: Construye un "Combo Chart" para replicar un diseño web moderno.
 ' Superpone una serie Área (Sombra transparente) con una serie Línea (Borde sólido).
 ' ------------------------------------------------------------------------------
-Private Sub GenerarGrafico(ws As Worksheet, ecuacion As String, a As Double, b As Double, fRow As Integer)
+Private Sub GenerarGrafico(ws As Worksheet, ecuacion As String, a As Double, b As Double, fRow As Long)
     Dim i As Integer, puntos As Integer: puntos = 100 ' 100 puntos para garantizar una curva suave
     Dim paso As Double, ch As ChartObject, rngChart As Range
     Dim sArea As Series, sLine As Series

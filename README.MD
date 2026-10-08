@@ -1,32 +1,46 @@
-# Simpson 1/3 · Integración numérica
+![Simpson 1/3](docs/cover.svg)
 
-Proyecto de Excel VBA para aproximar integrales definidas y visualizar el método.
+# Simpson 1/3
 
-**Para revisar:** `Simpson_Pro.xlsm, Simpson_VBA.txt`.
+**Aproximación de integrales con tabla de puntos y visualización del método.**
 
-**Contexto:** Requiere Excel con macros. El archivo XLSM original no se ha modificado ni ejecutado. La mejora VBA se entrega como código fuente para importar y validar en Excel.
+PERSONAL · CÁLCULO Y EXCEL VBA · Excel · VBA · Integración numérica
 
-Consulta [el caso de proyecto](docs/PORTFOLIO_CASE.md) para el alcance y los criterios de revisión.
+[Portafolio](https://dodysalim.github.io/) · [Caso y alcance](docs/PORTFOLIO_CASE.md) · [Verificación](docs/VALIDATION.md)
 
----
+## La pregunta
 
-## Documentación detallada existente
+¿Cómo calcular una integral definida y mostrar los pesos pares e impares de Simpson 1/3?
 
-# 📊 Dashboard de Integración Numérica Simpson 1/3 (Excel VBA)
+## Qué puedes revisar
 
-Una herramienta avanzada y de alto rendimiento desarrollada en Excel para calcular integrales definidas utilizando la **Regla de Simpson 1/3**, con una interfaz de usuario moderna inspirada en el estilo "GitHub Dark".
+- Libro Excel con dashboard, entradas y gráfica.
+- Código VBA separado para revisar e importar.
+- Validación de n par y restauración de pantalla ante errores.
 
-## ✨ Características Principales
-- **Interfaz Inmersiva**: Modo de visualización completa que oculta encabezados de Excel, líneas de cuadrícula y celdas no utilizadas para un efecto de software independiente.
-- **Gráficos Dinámicos**: Renderizado automatizado de un "Gráfico Combinado" que muestra el área bajo la curva con transparencias personalizadas y una línea de función nítida.
-- **Motor Matemático Robusto**: Evaluación en tiempo real de funciones algebraicas complejas (ej. `x^3`, `sin(x)`, `exp(x)`) a prueba de configuraciones regionales (punto/coma decimal).
-- **Tabla de Datos Profesional**: Formato limpio con identificación de paridad (intervalos pares e impares) para transparencia en el cálculo.
+## Inicio local
 
-## 🚀 Cómo usarlo
-1. Descarga el archivo `.xlsm` (o copia el código de la carpeta `src`).
-2. Habilita las Macros en Excel.
-3. Ejecuta la macro `Simpson_Dashboard_Pro`.
-4. Ingresa tus límites (a, b), el número de intervalos (n) y la función f(x).
+Abre `Simpson_Pro.xlsm` en Excel de escritorio. Para usar la fuente revisada, importa `Simpson_VBA.txt` en un módulo VBA y ejecuta `Simpson_Dashboard_Pro`. Conserva una copia del libro antes de sustituir el módulo.
 
-## 🤓 El "Dato Curioso" Matemático
-Durante las pruebas de estrés, evaluar la función **f(x) = x³** con límites de **-100 a 100** arroja exactamente **0.000000**. Esto demuestra la precisión del algoritmo al respetar la simetría matemática, donde las áreas negativas y positivas se cancelan mutuamente.
+## Datos y configuración
+
+Requiere Excel de escritorio y macros habilitadas. El código fuente actualizado debe importarse en el editor VBA; no se reemplazó el binario VBA del XLSM.
+
+## Recorrido por el código
+
+| Ruta | Qué contiene |
+| --- | --- |
+| [Simpson_Pro.xlsm](Simpson_Pro.xlsm) | Libro original |
+| [Simpson_VBA.txt](Simpson_VBA.txt) | Fuente VBA revisada |
+
+## Comprobación y alcance
+
+Fuente revisada: fRow usa Long y ScreenUpdating se restaura ante un error. La macro y el archivo XLSM no se ejecutaron en Excel durante esta revisión.
+
+n debe ser par, entre 2 y 100.000. La precisión depende de la función y del paso. No se promete exactitud para cualquier función.
+
+## Autoría
+
+Proyecto personal. Dody Salim Dueñas Remache.
+
+[Documentación anterior](docs/ORIGINAL_README.md), conservada como referencia histórica.
