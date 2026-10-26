@@ -12,6 +12,10 @@
 <img src="https://img.shields.io/badge/Excel-217346?style=flat-square&logoColor=white" alt="Excel"> <img src="https://img.shields.io/badge/VBA-5C2D91?style=flat-square&logoColor=white" alt="VBA">
 </p>
 
+<p align="center">
+<img src="https://img.shields.io/badge/versión-1.1.0-8F7BFF?style=flat-square" alt="Versión 1.1.0"> <img src="https://img.shields.io/badge/licencia-MIT-30405B?style=flat-square" alt="Licencia MIT">
+</p>
+
 <p align="center"><a href="https://dodysalim.github.io/"><b>🌐 Portafolio</b></a> · <a href="docs/PORTFOLIO_CASE.md"><b>📄 Caso de estudio</b></a> · <a href="docs/VALIDATION.md"><b>✅ Verificación</b></a></p>
 
 ---

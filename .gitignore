@@ -1,0 +1,5 @@
+# Archivos temporales de Office
+~$*
+*.tmp
+.DS_Store
+Thumbs.db
