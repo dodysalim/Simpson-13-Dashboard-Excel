@@ -10,4 +10,3 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y [
 - Licencia MIT y `.gitignore` para archivos temporales de Office.
 - `README.MD` renombrado a `README.md` (convención estándar).
 - README con insignias de versión y licencia.
-
