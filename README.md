@@ -16,7 +16,7 @@
 <img src="https://img.shields.io/badge/versión-1.1.0-8F7BFF?style=flat-square" alt="Versión 1.1.0"> <img src="https://img.shields.io/badge/licencia-MIT-30405B?style=flat-square" alt="Licencia MIT">
 </p>
 
-<p align="center"><a href="https://dodysalim.github.io/"><b>🌐 Portafolio</b></a> · <a href="docs/PORTFOLIO_CASE.md"><b>📄 Caso de estudio</b></a> · <a href="docs/VALIDATION.md"><b>✅ Verificación</b></a></p>
+<p align="center"><a href="https://dodysalim.github.io/"><b>🌐 Portafolio</b></a> · <a href="docs/PORTFOLIO_CASE.md"><b>📄 Caso de estudio</b></a> · <a href="docs/VALIDATION.md"><b>✅ Verificación</b></a> · <a href="README.en.md"><b>🇺🇸 English</b></a></p>
 
 ---
 
@@ -38,6 +38,19 @@
 - Libro Excel con dashboard, entradas y gráfica.
 - Código VBA separado para revisar e importar.
 - Validación de n par y restauración de pantalla ante errores.
+
+## 🏗️ Arquitectura
+
+```mermaid
+flowchart LR
+    IN[Función f·x, límites a-b, n par] --> VBA[Macro VBA<br/>Simpson_Dashboard_Pro]
+    VBA --> VAL{n par y<br/>2 ≤ n ≤ 100.000}
+    VAL -->|sí| CALC[Pesos 1-4-2-4…-1<br/>h/3 · Σ]
+    VAL -->|no| ERR[Mensaje de error]
+    CALC --> TAB[Tabla de puntos]
+    CALC --> RES[Resultado]
+    TAB --> GR[Gráfica del área]
+```
 
 ## 🚀 Cómo ejecutarlo
 
